@@ -31,6 +31,7 @@ in
         opencode
         bun
         gh
+        unityhub
       ];
     };
 

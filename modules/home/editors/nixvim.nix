@@ -290,6 +290,18 @@ in
         };
       }
       {
+        mode = "n";
+        key = "<M-j>";
+        action = "<cmd>m .+1<cr>== powder";
+        options.desc = "Move line down";
+      }
+      {
+        mode = "n";
+        key = "<M-k>";
+        action = "<cmd>m .-2<cr>== powder";
+        options.desc = "Move line up";
+      }
+      {
         key = "<leader>H";
         mode = [ "n" ];
         action = ":help <C-r><C-w><CR>";

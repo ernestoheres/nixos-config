@@ -158,6 +158,10 @@ in
           clangd.enable = true;
           zls.enable = true;
           marksman.enable = true;
+          hls = {
+            enable = true;
+            installGhc = false;
+          };
           # hyprls is optional; keep tools available via extraPackages
         };
         keymaps = {

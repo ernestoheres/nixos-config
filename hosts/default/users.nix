@@ -57,5 +57,8 @@ in
     zoxide = {
       enable = true;
     };
+    direnv = {
+      enable = true;
+    };
   };
 }

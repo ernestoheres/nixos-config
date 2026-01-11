@@ -7,27 +7,28 @@
 #export ZSH="$HOME/.oh-my-zsh"
 
 # Set-up icons for files/directories in terminal
-#alias ls='eza -a --icons'
-#alias ll='eza -al --icons'
-#alias lt='eza -a --tree --level=1 --icons'
+alias ls='eza -a --icons'
+alias ll='eza -al --icons'
+alias lt='eza -a --tree --level=1 --icons'
 
 # Starting down here, are set in user.nix
 
-#ZSH_THEME="xiong-chiamiov-plus"
+ZSH_THEME="xiong-chiamiov-plus"
 
-#plugins=(
-#    git
-    #zsh-autosuggestions
-    #zsh-syntax-highlighting
-#)
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    direnv
+)
 
 # Display Pokemon-colorscripts
-# Project page: https://gitlab.com/phoneybadger/pokemon-colorscripts#on-other-distros-and-macos
-#pokemon-colorscripts --no-title -s -r
+Project page: https://gitlab.com/phoneybadger/pokemon-colorscripts#on-other-distros-and-macos
+pokemon-colorscripts --no-title -s -r
 
 
 # Set-up FZF key bindings (CTRL R for fuzzy history finder)
-#source <(fzf --zsh)
+source <(fzf --zsh)
 
 #HISTFILE=~/.zsh_history
 #HISTSIZE=10000

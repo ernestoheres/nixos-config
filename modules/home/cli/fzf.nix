@@ -1,10 +1,12 @@
 # Fzf is a general-purpose command-line fuzzy finder.
-{lib, ...}: let
+{ lib, ... }:
+let
   # Static Catppuccin Mocha accents (no Stylix dependency)
   accent = "#89b4fa";
   foreground = "#cdd6f4";
   muted = "#6c7086";
-in {
+in
+{
   programs.fzf = {
     enable = true;
     enableZshIntegration = false;
@@ -36,5 +38,11 @@ in {
     historyWidgetOptions = [
       "--prompt='history> '"
     ];
+  };
+  # cool tool that replaces cd with a recency and frequency bias for shortcuts
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+    options = [ "--cmd j" ];
   };
 }

@@ -32,6 +32,7 @@ in
         bun
         gh
         unityhub
+        discord
       ];
     };
 

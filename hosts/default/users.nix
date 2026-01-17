@@ -33,6 +33,7 @@ in
         gh
         unityhub
         discord
+        gimp
       ];
     };
 

@@ -28,7 +28,6 @@ in
 
       # define user packages here
       packages = with pkgs; [
-        opencode
         bun
         gh
         unityhub

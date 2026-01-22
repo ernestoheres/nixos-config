@@ -10,6 +10,10 @@
     #hyprland.url = "github:hyprwm/Hyprland"; # hyprland development
     alejandra.url = "github:kamadorueda/alejandra";
     sops-nix.url = "github:Mic92/sops-nix";
+    opencode = {
+      url = "github:anomalyco/opencode";
+      #temp fix
+    };
     ags = {
       type = "github";
       owner = "aylur";
@@ -33,6 +37,7 @@
     , nixpkgs
     , ags
     , alejandra
+    , opencode
     , ...
     }:
     let

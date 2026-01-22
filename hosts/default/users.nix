@@ -3,6 +3,7 @@
 { config
 , pkgs
 , username
+, inputs
 , ...
 }:
 let
@@ -28,6 +29,7 @@ in
 
       # define user packages here
       packages = with pkgs; [
+        inputs.opencode.packages.${pkgs.system}.default
         bun
         gh
         unityhub

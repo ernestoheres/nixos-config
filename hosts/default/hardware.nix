@@ -5,7 +5,6 @@
 {
   environment.systemPackages = with pkgs; [
     msr-tools
-    ryzenadj
   ];
   imports =
     [

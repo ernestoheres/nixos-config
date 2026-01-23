@@ -35,6 +35,7 @@ in
         unityhub
         discord
         gimp
+        krabby
       ];
     };
 
@@ -46,7 +47,9 @@ in
   programs.ssh.startAgent = true;
   programs = {
     zsh = {
-      interactiveShellInit = "${pkgs.neofetch}/bin/neofetch";
+      promptInit = ''
+        krabby random --no-mega --no-gmax --no-regional --no-title -s;
+      '';
       ohMyZsh = {
         enable = true;
         theme = "agnoster";

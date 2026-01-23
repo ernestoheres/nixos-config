@@ -22,7 +22,6 @@ in
     ../../modules/intel-drivers.nix
     ../../modules/vm-guest-services.nix
     ../../modules/local-hardware-clock.nix
-    ./ryzen-fix.nix
   ];
 
   # BOOT related stuff

@@ -1,6 +1,6 @@
 <div align="center">
 
-# ErnestOS NixOs
+# ErnestOS NixOS
 Using Jakoolitz Installer script as base
 Hyprland
 sops for secret management

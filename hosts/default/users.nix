@@ -36,6 +36,7 @@ in
         discord
         gimp
         krabby
+        spotify
         httpie
       ];
     };

@@ -86,11 +86,11 @@ in
           limit_output_chars = 10000;
           wrap_output = false;
         };
-        bufferline.enable = true;
-        indent-blankline.enable = true;
-        colorizer.enable = true;
-        illuminate.enable = true;
       };
+      bufferline.enable = true;
+      indent-blankline.enable = true;
+      colorizer.enable = true;
+      illuminate.enable = true;
       # File tree (Neo-tree to match NVF)
       neo-tree = {
         enable = true;

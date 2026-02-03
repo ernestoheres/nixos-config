@@ -275,6 +275,43 @@ in
         options.desc = "Comment selection";
       }
 
+      # --- Molten
+      {
+        key = "<leader>ni";
+        mode = [ "n" ];
+        action = "<cmd>MoltenInit<CR>";
+        options.desc = "Notebook: init kernel";
+      }
+      {
+        key = "<leader>nc";
+        mode = [ "n" ];
+        action = "<cmd>MoltenEvaluateOperator<CR>ic";
+        options.desc = "Notebook: run current cell";
+      }
+      {
+        key = "<leader>nr";
+        mode = [ "n" ];
+        action = "<cmd>MoltenReevaluateCell<CR>";
+        options.desc = "Notebook: re-run cell";
+      }
+      {
+        key = "<leader>no";
+        mode = [ "n" ];
+        action = "<cmd>MoltenShowOutput<CR>";
+        options.desc = "Notebook: show output";
+      }
+      {
+        key = "<leader>nI";
+        mode = [ "n" ];
+        action = "<cmd>MoltenInterrupt<CR>";
+        options.desc = "Notebook: interrupt kernel";
+      }
+      {
+        key = "<leader>nR";
+        mode = [ "n" ];
+        action = "<cmd>MoltenRestart<CR>";
+        options.desc = "Notebook: restart kernel";
+      }
       # Diagnostics
       {
         key = "<leader>dj";

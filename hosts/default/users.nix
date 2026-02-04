@@ -32,6 +32,7 @@ in
         inputs.opencode.packages.${pkgs.system}.default
         bun
         gh
+        vscode
         unityhub
         discord
         gimp

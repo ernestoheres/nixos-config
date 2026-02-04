@@ -283,12 +283,6 @@ in
         options.desc = "Notebook: init kernel";
       }
       {
-        key = "<leader>nc";
-        mode = [ "n" ];
-        action = "<cmd>MoltenEvaluateOperator<CR>ic";
-        options.desc = "Notebook: run current cell";
-      }
-      {
         key = "<leader>nr";
         mode = [ "n" ];
         action = "<cmd>MoltenReevaluateCell<CR>";
@@ -403,116 +397,125 @@ in
 
     # Diagnostic UI and notify background tweaks
     extraConfigLua = ''
-      -- Inline diagnostics (virtual text) similar to NVF virtual_lines
-      vim.diagnostic.config({
-        virtual_text = { prefix = "●", spacing = 2 },
-        update_in_insert = true,
-        severity_sort = true,
-        underline = true,
-        signs = true,
-      })
+            -- Inline diagnostics (virtual text) similar to NVF virtual_lines
+            vim.diagnostic.config({
+              virtual_text = { prefix = "●", spacing = 2 },
+              update_in_insert = true,
+              severity_sort = true,
+              underline = true,
+              signs = true,
+            })
 
-      -- Basic LSP keymaps when LSP attaches
-      local function lsp_on_attach(_, bufnr)
-        local map = function(mode, lhs, rhs, desc)
-          vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
-        end
-        map('n', 'K', vim.lsp.buf.hover, 'Hover docs')
-        map('n', 'gd', vim.lsp.buf.definition, 'Goto definition')
-        map('n', 'gD', vim.lsp.buf.declaration, 'Goto declaration')
-        map('n', 'gi', vim.lsp.buf.implementation, 'Goto implementation')
-        map('n', 'gr', vim.lsp.buf.references, 'References')
-        map('n', '<leader>rn', vim.lsp.buf.rename, 'Rename symbol')
-        map('n', '<leader>ca', vim.lsp.buf.code_action, 'Code action')
-      end
+      vim.keymap.set("n", "<leader>nc", function()
+        vim.cmd("MoltenEvaluateOperator")
+        vim.api.nvim_feedkeys("ic", "n", false)
+      end, { desc = "Notebook: run current cell" })
 
-      -- If nixvim exposes a hook, register it; otherwise set a global autocmd
-      if vim.g.__nixvim_lsp_attached ~= true then
-        vim.g.__nixvim_lsp_attached = true
-        vim.api.nvim_create_autocmd('LspAttach', {
-          callback = function(args)
-            local bufnr = args.buf
-            lsp_on_attach(nil, bufnr)
-          end,
-        })
-      end
 
-      -- Notify background using Stylix palette
-      local ok, notify = pcall(require, 'notify')
-      if ok then
-        notify.setup({ background_colour = "#${notifyBg}" })
-        vim.notify = notify
-      end
-
-      -- nvim-cmp integration with nvim-autopairs (optional)
-      do
-        local ok_cmp, cmp = pcall(require, "cmp")
-        local ok_ap, cmp_autopairs = pcall(require, "nvim-autopairs.completion.cmp")
-        if ok_cmp and ok_ap then
-          cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
-        end
-      end
-
-      -- Startup dashboard (alpha-nvim)
-      do
-        local ok_alpha, alpha = pcall(require, "alpha")
-        if ok_alpha then
-          local dashboard = require("alpha.themes.dashboard")
-
-          -- Prefer generating the header with toilet (ansi-shadow), then figlet; fall back if unavailable
-          local header_lines = nil
-          local function gen_banner(cmd)
-            local h = io.popen(cmd)
-            if not h then return nil end
-            local out = h:read("*a") or ""
-            h:close()
-            if #out == 0 then return nil end
-            local lines = {}
-            for line in out:gmatch("([^\n]*)\n?") do
-              if line ~= "" then table.insert(lines, line) end
+            -- Basic LSP keymaps when LSP attaches
+            local function lsp_on_attach(_, bufnr)
+              local map = function(mode, lhs, rhs, desc)
+                vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+              end
+              map('n', 'K', vim.lsp.buf.hover, 'Hover docs')
+              map('n', 'gd', vim.lsp.buf.definition, 'Goto definition')
+              map('n', 'gD', vim.lsp.buf.declaration, 'Goto declaration')
+              map('n', 'gi', vim.lsp.buf.implementation, 'Goto implementation')
+              map('n', 'gr', vim.lsp.buf.references, 'References')
+              map('n', '<leader>rn', vim.lsp.buf.rename, 'Rename symbol')
+              map('n', '<leader>ca', vim.lsp.buf.code_action, 'Code action')
             end
-            return #lines > 0 and lines or nil
-          end
 
-          header_lines = gen_banner('toilet -f ansi-shadow NIXOS 2>/dev/null')
-            or gen_banner('figlet -f "ANSI Shadow" NIXOS 2>/dev/null')
-            or gen_banner('figlet NIXOS 2>/dev/null')
+            -- If nixvim exposes a hook, register it; otherwise set a global autocmd
+            if vim.g.__nixvim_lsp_attached ~= true then
+              vim.g.__nixvim_lsp_attached = true
+              vim.api.nvim_create_autocmd('LspAttach', {
+                callback = function(args)
+                  local bufnr = args.buf
+                  lsp_on_attach(nil, bufnr)
+                end,
+              })
+            end
 
-          if not header_lines then
-            header_lines = {
-              " _   _ ___  __  __  ___   ___   ____  ",
-              "| \\ | |_ _| \\ \\/ / / _ \\ / _ \\\ |  _ \\ ",
-              "|  \\| || |   \\  / | | | | | | || | | |",
-              "| |\\  || |   /  \\ | |_| | |_| || |_| |",
-              "|_| \\_|___| /_/\\_\\ \\___/ \\___/ |____/ ",
-            }
-          end
-          dashboard.section.header.val = header_lines
+       vim.keymap.set("n", "<leader>nc", function()
+        vim.cmd("MoltenEvaluateOperator")
+        vim.api.nvim_feedkeys("ic", "n", false)
+      end, { desc = "Notebook: run current cell" })     -- Notify background using Stylix palette
+            local ok, notify = pcall(require, 'notify')
+            if ok then
+              notify.setup({ background_colour = "#${notifyBg}" })
+              vim.notify = notify
+            end
 
-          dashboard.section.buttons.val = {
-            dashboard.button("f", "  Find file", ":Telescope find_files<CR>"),
-            dashboard.button("r", "  Recent files", ":Telescope oldfiles<CR>"),
-            dashboard.button("g", "󰺮  Live grep", ":Telescope live_grep<CR>"),
-            dashboard.button("n", "  New file", ":enew<CR>"),
-            dashboard.button("e", "  File browser", ":Neotree toggle<CR>"),
-            dashboard.button("q", "  Quit", ":qa<CR>"),
-          }
+            -- nvim-cmp integration with nvim-autopairs (optional)
+            do
+              local ok_cmp, cmp = pcall(require, "cmp")
+              local ok_ap, cmp_autopairs = pcall(require, "nvim-autopairs.completion.cmp")
+              if ok_cmp and ok_ap then
+                cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+              end
+            end
 
-          local v = vim.version()
-          dashboard.section.footer.val = string.format("NixVim • Neovim %d.%d.%d", v.major, v.minor, v.patch)
+            -- Startup dashboard (alpha-nvim)
+            do
+              local ok_alpha, alpha = pcall(require, "alpha")
+              if ok_alpha then
+                local dashboard = require("alpha.themes.dashboard")
 
-          dashboard.opts.opts.noautocmd = true
-          alpha.setup(dashboard.config)
+                -- Prefer generating the header with toilet (ansi-shadow), then figlet; fall back if unavailable
+                local header_lines = nil
+                local function gen_banner(cmd)
+                  local h = io.popen(cmd)
+                  if not h then return nil end
+                  local out = h:read("*a") or ""
+                  h:close()
+                  if #out == 0 then return nil end
+                  local lines = {}
+                  for line in out:gmatch("([^\n]*)\n?") do
+                    if line ~= "" then table.insert(lines, line) end
+                  end
+                  return #lines > 0 and lines or nil
+                end
 
-          -- Disable folding in alpha buffer
-          vim.api.nvim_create_autocmd("FileType", {
-            pattern = "alpha",
-            callback = function()
-              vim.opt_local.foldenable = false
-            end,
-          })
-        end
-      end
+                header_lines = gen_banner('toilet -f ansi-shadow NIXOS 2>/dev/null')
+                  or gen_banner('figlet -f "ANSI Shadow" NIXOS 2>/dev/null')
+                  or gen_banner('figlet NIXOS 2>/dev/null')
+
+                if not header_lines then
+                  header_lines = {
+                    " _   _ ___  __  __  ___   ___   ____  ",
+                    "| \\ | |_ _| \\ \\/ / / _ \\ / _ \\\ |  _ \\ ",
+                    "|  \\| || |   \\  / | | | | | | || | | |",
+                    "| |\\  || |   /  \\ | |_| | |_| || |_| |",
+                    "|_| \\_|___| /_/\\_\\ \\___/ \\___/ |____/ ",
+                  }
+                end
+                dashboard.section.header.val = header_lines
+
+                dashboard.section.buttons.val = {
+                  dashboard.button("f", "  Find file", ":Telescope find_files<CR>"),
+                  dashboard.button("r", "  Recent files", ":Telescope oldfiles<CR>"),
+                  dashboard.button("g", "󰺮  Live grep", ":Telescope live_grep<CR>"),
+                  dashboard.button("n", "  New file", ":enew<CR>"),
+                  dashboard.button("e", "  File browser", ":Neotree toggle<CR>"),
+                  dashboard.button("q", "  Quit", ":qa<CR>"),
+                }
+
+                local v = vim.version()
+                dashboard.section.footer.val = string.format("NixVim • Neovim %d.%d.%d", v.major, v.minor, v.patch)
+
+                dashboard.opts.opts.noautocmd = true
+                alpha.setup(dashboard.config)
+
+                -- Disable folding in alpha buffer
+                vim.api.nvim_create_autocmd("FileType", {
+                  pattern = "alpha",
+                  callback = function()
+                    vim.opt_local.foldenable = false
+                  end,
+                })
+              end
+            end
     '';
   };
 }

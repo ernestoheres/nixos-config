@@ -36,8 +36,8 @@ in
         unityhub
         discord
         gimp
-        obsidian
         krabby
+        notion
         spotify
         httpie
       ];

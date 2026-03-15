@@ -329,7 +329,7 @@ in
   virtualisation.libvirtd.enable = false;
   virtualisation.podman = {
     enable = false;
-    dockerCompat = false;
+    dockerCompat = true;
     defaultNetwork.settings.dns_enabled = false;
   };
 

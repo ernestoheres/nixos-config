@@ -7,7 +7,6 @@
     home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
-    nix-doom-emacs-unstraightened.url = "github:marienz/nix-doom-emacs-unstraightened";
     #hyprland.url = "github:hyprwm/Hyprland"; # hyprland development
     alejandra.url = "github:kamadorueda/alejandra";
     sops-nix.url = "github:Mic92/sops-nix";
@@ -23,10 +22,9 @@
     };
 
     catppuccin = {
-      url = "github:catppuccin/nix";
+      url = "github:catppuccin/nix/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -97,8 +95,6 @@
                 imports = [
                   ./modules/home/default.nix
                   inputs.sops-nix.homeManagerModules.sops
-
-                  inputs.nix-doom-emacs-unstraightened.homeModule
                 ];
               };
             }

@@ -39,6 +39,7 @@ in
         krabby
         notion
         spotify
+        jetbrains.dataspell
         httpie
       ];
     };

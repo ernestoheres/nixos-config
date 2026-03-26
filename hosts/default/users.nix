@@ -38,8 +38,11 @@ in
         gimp
         krabby
         notion
+        firefox
         spotify
         jetbrains.dataspell
+        jetbrains.rider
+        jetbrains.webstorm
         httpie
       ];
     };

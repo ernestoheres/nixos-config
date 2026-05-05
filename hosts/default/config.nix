@@ -24,6 +24,7 @@ in
     ../../modules/local-hardware-clock.nix
   ];
 
+  virtualisation.docker.enable = true;
   # BOOT related stuff
   boot = {
     kernelPackages = pkgs.linuxPackages_zen; # zen Kernel
@@ -162,7 +163,6 @@ in
         variant = "";
       };
     };
-
     smartd = {
       enable = false;
       autodetect = true;

@@ -9,6 +9,11 @@ let
   notifyBg = lib.attrByPath [ "lib" "stylix" "colors" "base01" ] "1e1e2e" config;
 in
 {
+  home.file = {
+    ".config/nvim/lua/ddd_snippets/init.lua".source = ./nixvim-snippets/lua/ddd_snippets/init.lua;
+    ".config/nvim/lua/ddd_snippets/loader.lua".source = ./nixvim-snippets/lua/ddd_snippets/loader.lua;
+  };
+
   # Bring in Nixvim's Home Manager module so programs.nixvim options exist
   imports = [ inputs.nixvim.homeModules.nixvim ];
 
@@ -162,7 +167,19 @@ in
       cmp-buffer.enable = true;
       cmp-path.enable = true;
 
-      luasnip.enable = true;
+      luasnip = {
+        enable = true;
+        fromLua = [
+          {
+            paths = ./nixvim-snippets/snippets;
+            include = [ "cs" "csharp" ];
+          }
+        ];
+        settings = {
+          update_events = [ "TextChanged" "TextChangedI" ];
+          delete_check_events = "TextChanged";
+        };
+      };
       friendly-snippets.enable = true;
 
       # Signature help while typing function params
@@ -452,6 +469,24 @@ in
               local ok_ap, cmp_autopairs = pcall(require, "nvim-autopairs.completion.cmp")
               if ok_cmp and ok_ap then
                 cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done())
+              end
+            end
+
+            -- Basic LuaSnip controls for manual expand/jump
+            do
+              local ok_ls, luasnip = pcall(require, "luasnip")
+              if ok_ls then
+                vim.keymap.set({ "i", "s" }, "<C-k>", function()
+                  if luasnip.expand_or_jumpable() then
+                    luasnip.expand_or_jump()
+                  end
+                end, { desc = "Snippet expand or jump" })
+
+                vim.keymap.set({ "i", "s" }, "<C-j>", function()
+                  if luasnip.jumpable(-1) then
+                    luasnip.jump(-1)
+                  end
+                end, { desc = "Snippet jump back" })
               end
             end
 

@@ -37,6 +37,7 @@ in
         discord
         gimp
         krabby
+        git-lfs
         notion
         firefox
         spotify

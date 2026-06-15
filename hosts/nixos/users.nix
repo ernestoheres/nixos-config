@@ -18,6 +18,7 @@ in
         "networkmanager"
         "wheel"
         "libvirtd"
+        "docker"
         "scanner"
         "lp"
         "video"

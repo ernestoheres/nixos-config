@@ -2,15 +2,14 @@
   # Extra Portal Configuration
   xdg.portal = {
     enable = true;
-    wlr.enable = true;
+    xdgOpenUsePortal = true;
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-wlr
-      #pkgs.xdg-desktop-portal
+      pkgs.xdg-desktop-portal-hyprland
     ];
-    configPackages = [
-      pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-wlr
-    ];
+    config = {
+      common.default = [ "hyprland" "gtk" ];
+      hyprland.default = [ "hyprland" "gtk" ];
+    };
   };
 }

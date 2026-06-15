@@ -36,7 +36,11 @@ in
       "nowatchdog"
       "modprobe.blacklist=sp5100_tco" # watchdog for AMD
       "modprobe.blacklist=iTCO_wdt" # watchdog for Intel
+      "usbcore.old_scheme_first=1"
+      "usbcore.autosuspend=-1"
     ];
+
+    kernelModules = [ "uvcvideo" ];
 
     # This is for OBS Virtual Cam Support
     #kernelModules = [ "v4l2loopback" ];

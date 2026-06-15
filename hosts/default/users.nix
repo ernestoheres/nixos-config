@@ -20,6 +20,7 @@ in
         "networkmanager"
         "wheel"
         "libvirtd"
+        "docker"
         "scanner"
         "lp"
         "video"
@@ -33,6 +34,8 @@ in
         bun
         gh
         vscode
+        codex
+        claude-code
         unityhub
         discord
         gimp
@@ -44,6 +47,7 @@ in
         jetbrains.dataspell
         jetbrains.rider
         jetbrains.webstorm
+        dbeaver-bin
         httpie
       ];
     };

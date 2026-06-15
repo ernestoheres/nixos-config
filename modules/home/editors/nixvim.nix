@@ -7,6 +7,21 @@
 let
   # Use Stylix palette if present; otherwise fall back to Catppuccin Mocha background
   notifyBg = lib.attrByPath [ "lib" "stylix" "colors" "base01" ] "1e1e2e" config;
+  dotnetSdk = pkgs.dotnetCorePackages.combinePackages [
+    pkgs.dotnetCorePackages.sdk_8_0
+    pkgs.dotnetCorePackages.sdk_9_0
+    pkgs.dotnetCorePackages.sdk_10_0
+  ];
+  csharpLsWrapped = pkgs.writeShellScriptBin "csharp-ls-wrapped" ''
+    sdk_version="$(ls "${dotnetSdk}/share/dotnet/sdk" | sort -V | tail -n 1)"
+    export DOTNET_ROOT="${dotnetSdk}/share/dotnet"
+    export DOTNET_HOST_PATH="$DOTNET_ROOT/dotnet"
+    export DOTNET_MSBUILD_SDK_RESOLVER_CLI_DIR="$DOTNET_ROOT"
+    export DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR="$DOTNET_ROOT/sdk"
+    export MSBuildSDKsPath="$DOTNET_ROOT/sdk/$sdk_version/Sdks"
+    export PATH="${dotnetSdk}/bin:$PATH"
+    exec "${pkgs.csharp-ls}/bin/csharp-ls" "$@"
+  '';
 in
 {
   home.file = {
@@ -192,6 +207,10 @@ in
           nixd.enable = true;
           lua_ls.enable = true;
           pyright.enable = true;
+          csharp_ls = {
+            enable = true;
+            cmd = [ "csharp-ls-wrapped" ];
+          };
           ts_ls.enable = true;
           tailwindcss.enable = true;
           html.enable = true;
@@ -383,6 +402,26 @@ in
         action = ":help <C-r><C-w><CR>";
         options.desc = "Help for word under cursor";
       }
+
+      # Leap motions (overrides vim's default s/S)
+      {
+        key = "s";
+        mode = [ "n" "x" "o" ];
+        action.__raw = "function() require('leap').leap({ target_windows = { vim.fn.win_getid() } }) end";
+        options.desc = "Leap: forward to any two chars";
+      }
+      {
+        key = "S";
+        mode = [ "n" "x" "o" ];
+        action.__raw = "function() require('leap').leap({ target_windows = { vim.fn.win_getid() }, backward = true }) end";
+        options.desc = "Leap: backward to any two chars";
+      }
+      {
+        key = "gs";
+        mode = [ "n" "x" "o" ];
+        action.__raw = "function() require('leap').leap({ target_windows = vim.api.nvim_tabpage_list_wins(0) }) end";
+        options.desc = "Leap: across windows";
+      }
     ];
 
     # Runtime tools and language servers
@@ -399,6 +438,8 @@ in
       nodePackages.typescript
       vscode-langservers-extracted
       pyright
+      csharpLsWrapped
+      dotnetSdk
       lua-language-server
       zls
       marksman

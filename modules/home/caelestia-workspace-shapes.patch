@@ -1,0 +1,96 @@
+diff --git a/modules/bar/components/workspaces/Workspace.qml b/modules/bar/components/workspaces/Workspace.qml
+--- a/modules/bar/components/workspaces/Workspace.qml
++++ b/modules/bar/components/workspaces/Workspace.qml
+@@ -34 +33,0 @@ Item {
+-    readonly property list<int> focusedShapeList: [MaterialShape.Slanted, MaterialShape.Oval, MaterialShape.Pill, MaterialShape.Triangle, MaterialShape.Arrow, MaterialShape.Diamond, MaterialShape.Pentagon, MaterialShape.Gem, MaterialShape.VerySunny, MaterialShape.Sunny, MaterialShape.Cookie4Sided, MaterialShape.Cookie6Sided, MaterialShape.Cookie7Sided, MaterialShape.Cookie9Sided, MaterialShape.Cookie12Sided, MaterialShape.Clover4Leaf, MaterialShape.SoftBurst, MaterialShape.Ghostish]
+@@ -51,11 +49,0 @@ Item {
+-    function updateShape(): void {
+-        const shape = indicator.item as MaterialShape;
+-        if (!shape)
+-            return;
+-
+-        if (focused)
+-            shape.shape = focusedShapeList[Math.floor(Math.random() * focusedShapeList.length)];
+-        else
+-            shape.shape = Qt.binding(() => isOccupied ? MaterialShape.Square : MaterialShape.Circle);
+-    }
+-
+@@ -68,3 +55,0 @@ Item {
+-    onFocusedChanged: updateShape()
+-    Component.onCompleted: updateShape()
+-
+@@ -87,4 +72,12 @@ Item {
+     Component {
+         id: shapeComponent
+-
++
++        Loader {
++            sourceComponent: root.ws % 10 === 2 ? infinityComponent : materialShapeComponent
++        }
++    }
++
++    Component {
++        id: materialShapeComponent
++
+         MaterialShape {
+@@ -91,1 +84,24 @@ Item {
+             implicitSize: Tokens.sizes.bar.innerWidth - Tokens.padding.small
++            id: polygonShape
++            readonly property int slot: ((root.ws - 1) % 10) + 1
++
++            shape: {
++                switch (slot) {
++                case 3: return MaterialShape.Triangle;
++                case 4: return MaterialShape.Square;
++                case 5:
++                case 6:
++                case 8: return MaterialShape.Custom;
++                case 7: return MaterialShape.Flower;
++                case 9: return MaterialShape.Sunny;
++                default: return MaterialShape.Circle;
++                }
++            }
++            customShape: {
++                switch (slot) {
++                case 5: return polygonShape.star(5, 0.45);
++                case 6: return polygonShape.regularPolygon(6);
++                case 8: return polygonShape.star(8, 0.24);
++                default: return polygonShape.regularPolygon(6);
++                }
++            }
+@@ -93,2 +108,4 @@ Item {
+-            color: root.fgColour
+-            scale: root.focused ? 2 / 3 : root.isOccupied ? 1 / 3 : 1 / 4
++            color: root.focused ? root.fgColour : "transparent"
++            strokeColor: root.focused ? "transparent" : root.fgColour
++            strokeWidth: root.focused ? 0 : 2.5
++            scale: slot === 1 ? (root.focused ? 0.32 : 0.26) : slot === 9 ? (root.focused ? 0.8 : 0.65) : root.focused ? 0.7 : 0.55
+@@ -102,0 +119,4 @@ Item {
++            Behavior on strokeColor {
++                CAnim {}
++            }
++
+@@ -107,0 +128,21 @@ Item {
++
++    Component {
++        id: infinityComponent
++
++        StyledText {
++            text: "∞"
++            color: root.fgColour
++            font.family: Tokens.font.workspaces
++            font.pixelSize: Tokens.sizes.bar.innerWidth - Tokens.padding.small
++            font.weight: root.focused ? Font.Black : Font.Medium
++            scale: root.focused ? 1 : 0.85
++
++            Behavior on color {
++                CAnim {}
++            }
++
++            Behavior on scale {
++                Anim {}
++            }
++        }
++    }
+@@ -194 +235,0 @@ Item {
+-            onItemChanged: root.updateShape()

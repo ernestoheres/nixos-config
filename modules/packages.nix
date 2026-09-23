@@ -5,6 +5,7 @@
 }: {
 
   services.power-profiles-daemon.enable = true;
+  services.pipewire.jack.enable = true;
 
   programs = {
     hyprland = {
@@ -85,6 +86,11 @@
     hyprland-qt-support # for hyprland-qt-support
 
     #  Apps
+    android-tools
+    ardour
+    qpwgraph # Visual PipeWire audio and MIDI routing
+    lsp-plugins # EQ, compression, reverb, and other LV2 effects
+    x42-plugins # Meters and audio/MIDI utility LV2 effects
     power-profiles-daemon
     loupe
     appimage-run
@@ -225,10 +231,8 @@
     ipfetch
     pfetch
     smartmontools
-    light
     lm_sensors
     mission-center
-    neofetch
 
     # Development related
     luarocks

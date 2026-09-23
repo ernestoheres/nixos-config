@@ -1,0 +1,25 @@
+diff --git a/modules/lock/NotifDock.qml b/modules/lock/NotifDock.qml
+--- a/modules/lock/NotifDock.qml
++++ b/modules/lock/NotifDock.qml
+@@ -48,17 +48,12 @@ ColumnLayout {
+             sourceComponent: ColumnLayout {
+                 spacing: Tokens.spacing.largeIncreased
+ 
+-                Image {
+-                    asynchronous: true
++                AnimatedImage {
+                     source: Paths.absolutePath(Config.paths.lockNoNotifsPic)
+-                    fillMode: Image.PreserveAspectFit
+-                    sourceSize.width: clipRect.width * 0.8 * ((QsWindow.window as QsWindow)?.devicePixelRatio ?? 1)
++                    fillMode: AnimatedImage.PreserveAspectFit
++                    sourceSize.width: clipRect.width * 0.95 * ((QsWindow.window as QsWindow)?.devicePixelRatio ?? 1)
++                    playing: visible
+ 
+-                    layer.enabled: true
+-                    layer.effect: Colouriser {
+-                        colorizationColor: Colours.palette.m3outlineVariant
+-                        brightness: 1
+-                    }
+                 }
+ 
+                 StyledText {

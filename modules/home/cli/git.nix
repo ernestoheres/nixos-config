@@ -3,10 +3,25 @@
 
   programs.ssh = {
     enable = true;
-    matchBlocks."github.com" = {
-      hostname = "github.com";
-      addKeysToAgent = "yes";
-      identityFile = config.sops.secrets.github_ssh_key.path;
+    enableDefaultConfig = false;
+    settings = {
+      "*" = {
+        ForwardAgent = false;
+        AddKeysToAgent = "no";
+        Compression = false;
+        ServerAliveInterval = 0;
+        ServerAliveCountMax = 3;
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
+      };
+      "github.com" = {
+        HostName = "github.com";
+        AddKeysToAgent = "yes";
+        IdentityFile = config.sops.secrets.github_ssh_key.path;
+      };
     };
   };
   sops = {
@@ -22,9 +37,9 @@
     # If you want to set identity per-host, you can do it in a small overlay
     # or via host variables. Leaving these unset keeps git functional and avoids
     # a build-time dependency on external variables.
-    userName = "ernestoheres";
-    userEmail = "ernestoheres09@gmail.com";
     settings = {
+      user.name = "ernestoheres";
+      user.email = "ernestoheres09@gmail.com";
       push.default = "simple"; # Match modern push behavior
       credential.helper = "cache --timeout=7200";
       init.defaultBranch = "main"; # Set default new branches to 'main'

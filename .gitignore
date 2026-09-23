@@ -1,0 +1,6 @@
+# Never commit private keys to this repo — it has a public GitHub remote.
+het
+*.pem
+id_ed25519*
+id_rsa*
+!*.pub

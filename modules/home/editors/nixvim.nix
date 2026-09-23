@@ -34,6 +34,7 @@ in
 
   programs.nixvim = {
     enable = true;
+    nixpkgs.config.allowUnfree = true;
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
@@ -120,7 +121,10 @@ in
       telescope.enable = true;
 
       # Treesitter for syntax/TS features
-      treesitter.enable = true;
+      treesitter = {
+        enable = true;
+        settings.highlight.enable = true;
+      };
       treesitter-context.enable = false;
 
       # Project management
@@ -176,6 +180,44 @@ in
       # Completion and snippets
       cmp = {
         enable = true;
+        settings = {
+          sources = [
+            { name = "nvim_lsp"; }
+            { name = "luasnip"; }
+            { name = "buffer"; }
+            { name = "path"; }
+          ];
+          mapping = {
+            "<C-Space>" = "cmp.mapping.complete()";
+            "<C-e>" = "cmp.mapping.close()";
+            "<CR>" = "cmp.mapping.confirm({ select = false })";
+            "<Tab>" = ''
+              cmp.mapping(function(fallback)
+                local luasnip = require("luasnip")
+                if cmp.visible() then
+                  cmp.select_next_item()
+                elseif luasnip.expand_or_jumpable() then
+                  luasnip.expand_or_jump()
+                else
+                  fallback()
+                end
+              end, { "i", "s" })
+            '';
+            "<S-Tab>" = ''
+              cmp.mapping(function(fallback)
+                local luasnip = require("luasnip")
+                if cmp.visible() then
+                  cmp.select_prev_item()
+                elseif luasnip.jumpable(-1) then
+                  luasnip.jump(-1)
+                else
+                  fallback()
+                end
+              end, { "i", "s" })
+            '';
+          };
+          snippet.expand = "function(args) require('luasnip').lsp_expand(args.body) end";
+        };
       };
       # Completion sources for LSP, buffer, path, and snippets
       cmp-nvim-lsp.enable = true;
@@ -434,8 +476,8 @@ in
       lazygit
       nixd
       hyprls
-      nodePackages.typescript-language-server
-      nodePackages.typescript
+      typescript-language-server
+      typescript
       vscode-langservers-extracted
       pyright
       csharpLsWrapped

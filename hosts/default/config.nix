@@ -27,7 +27,8 @@ in
   virtualisation.docker.enable = true;
   # BOOT related stuff
   boot = {
-    kernelPackages = pkgs.linuxPackages_zen; # zen Kernel
+    # NVIDIA 595 does not build against Linux 7.2: https://github.com/NixOS/nixpkgs/issues/554125
+    kernelPackages = pkgs.linuxPackages;
     #kernelPackages = pkgs.linuxPackages_latest; # Kernel
 
     kernelParams = [
@@ -330,7 +331,7 @@ in
   };
 
   # Virtualization / Containers
-  virtualisation.libvirtd.enable = false;
+  virtualisation.libvirtd.enable = true;
   virtualisation.podman = {
     enable = false;
     dockerCompat = true;

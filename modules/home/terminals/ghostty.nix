@@ -4,7 +4,7 @@
 }: {
   # Install Ghostty theme(s) so referenced names resolve even if the package's share/themes doesn't include them
   home.file = {
-    ".config/ghostty/themes/catppuccin-mocha".source = ./ghostty-themes/catppuccin-mocha;
+    ".config/ghostty/themes/caelestia".source = ./ghostty-themes/caelestia;
 
     # Optional: dedicated background overlay config for reference (CLI overrides are used at runtime)
     "${config.xdg.configHome}/ghostty/ghostty-bg.conf".text = ''
@@ -31,15 +31,15 @@
       confirm-close-surface = "false";
       font-family = "Maple Mono NF";
       font-size = 12;
-      theme = "dark:catppuccin-mocha,light:catppuccin-mocha";
+      theme = "dark:caelestia,light:caelestia";
       adjust-cell-height = "10%";
       window-theme = "dark";
       window-height = "32";
       window-width = "110";
       background-opacity = "1.00";
       background-blur-radius = "60";
-      selection-background = "#2d3f76";
-      selection-foreground = "#c8d3f5";
+      selection-background = "#45405b";
+      selection-foreground = "#f4efff";
       cursor-style = "bar";
       mouse-hide-while-typing = "true";
       wait-after-command = "false";

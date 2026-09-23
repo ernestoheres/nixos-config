@@ -30,18 +30,23 @@ in
 
       # define user packages here
       packages = with pkgs; [
-        inputs.opencode.packages.${pkgs.system}.default
+        inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default
         bun
         gh
         vscode
         codex
         claude-code
+        harlequin
         unityhub
         discord
         gimp
         krabby
+        elmerfem
         git-lfs
+        qutebrowser
         notion
+        jdk21
+        libreoffice
         firefox
         spotify
         jetbrains.dataspell

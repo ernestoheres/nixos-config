@@ -2,7 +2,7 @@
 
 **Instructions for later, after explicit approval. None of the installation,
 boot, power-control, benchmark or shutdown commands below has been executed.**
-Complete the full build first; previews are not bootable deliverables.
+Use the validated boot-only bundle; no full desktop build is required.
 
 ## 1. Preserve and verify normal recovery
 
@@ -35,24 +35,24 @@ and prunes entries; that is why it is not used for this disposable entry.
 Use the internal panel. Verify AMD's eDP connector is connected/enabled as in
 `HARDWARE.md`; do not depend on NVIDIA HDMI/DP. Keep a NixOS rescue USB available.
 Before active testing, use the inert entry to verify that an internal-panel TTY
-is accessible, and record its configured-kernel/driver baseline.
+is accessible, and record the same kernel/driver baseline as generation 83.
 
 ## 2. Build and install only the inert entry
 
 First, unprivileged and non-activating:
 
 ```sh
-python3 experiments/turing-unlock/build.py --full-system
+python3 experiments/turing-unlock/build.py --boot-only
 python3 experiments/turing-unlock/validate.py
 ```
 
-Require `full_system_built: true`, `boot_bundle_validated: true` and a real
-`results/boot-bundle` from the same build. Review its `provenance.json` and
+Require `mode: boot-only`, `desktop_rebuilt: false`, `boot_bundle_validated: true`
+and a real `results/boot-only` from the same build. Review its `provenance.json` and
 `turing-experiment-inert.conf`; require **no `turing_unlock.targets` argument**.
 Do not install `results/boot-preview` or `active-preview.conf`.
 
 **Only after explicit approval to modify the ESP**, copy the bundle's
-`EFI/turing-experiment-<store-hash>/linux.efi` and `initrd` to the identical paths
+`EFI/turing-experiment-<bootspec-hash>/linux.efi` and `initrd` to the identical paths
 under `/boot`, dereferencing the source symlinks. Copy just
 `turing-experiment-inert.conf` to `/boot/loader/entries/`. Refuse overwriting any
 existing path. This needs no build/download command under sudo, no firmware
@@ -60,7 +60,7 @@ variable write, no `bootctl install/update`, and no `switch-to-configuration`.
 Compare source/destination SHA-256 hashes. Verify loader.conf, normal entry,
 normal EFI file hashes and EFI default are identical to the saved values.
 
-Keep the experiment system GC root (`results/system`) and normal recovery root.
+Keep the experiment bundle GC root (`results/boot-only`) and normal recovery root.
 Do not run `nixos-rebuild switch`, `boot`, or `test`. These are not needed for
 manual selection of a separately copied BLS entry.
 
@@ -180,8 +180,8 @@ raw kernel times, SASS, correctness results, clocks, temperature and board power
 `median_kernel_tflops * 1e6 / (SM_count * median_SM_MHz)`. This normalization of
 separate medians is not a direct `clock64()` cycle measurement. Keep the before
 and after exact-output checks and the live telemetry alongside any throughput
-claim. Compare against the inert boot's kernel/driver baseline, not just the
-older running-system numbers.
+claim. Compare against the inert boot's matched kernel/driver baseline and live
+clock/power measurements, not just historical throughput numbers.
 
 ## 6. Full power-off and normal verification
 
@@ -209,7 +209,7 @@ requires its own approval; read-only `nvidia-smi` is not a compute correctness t
   laptop manufacturer's power-removal procedure if normal shutdown is impossible.
 * If no local console works, boot rescue media, mount root and the ESP, preserve
   the logs, remove only `loader/entries/turing-experiment-inert.conf` and its
-  uniquely named `EFI/turing-experiment-<store-hash>` directory, and use the saved
+  uniquely named `EFI/turing-experiment-<bootspec-hash>` directory, and use the saved
   normal entry/files. Do not delete `EFI/nixos`, other operating-system loaders,
   generation 83, or rewrite firmware/Secure Boot settings.
 * After a normal boot and explicit removal approval, delete only those same

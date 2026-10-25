@@ -20,8 +20,8 @@ this is the same address with an eight-digit domain, not another GPU.
 * NVIDIA is `card0`, `boot_vga=0`; `DP-1`, `DP-2`, `HDMI-A-1` are all disconnected
   and disabled. `nvidia-smi` reports no attached/active display.
 * Thus use the **internal panel**, not an external NVIDIA-wired output, for
-  recovery. The experiment includes amdgpu and leaves its display configuration
-  intact. A console boot with NVIDIA unavailable has not been exercised; a GPU
+  recovery. The boot-only experiment preserves the installed amdgpu driver,
+  firmware and display configuration. A console boot with NVIDIA unavailable has not been exercised; a GPU
   or shared-platform hang can still prevent an iGPU console. Recovery is not
   inferred solely from the iGPU's presence.
 
@@ -31,6 +31,8 @@ this is the same address with an eight-digit domain, not another GPU.
 * Booted kernel **6.18.52**, NVIDIA **595.71.05**, proprietary kernel module;
   configured kernel **6.18.55**, configured NVIDIA **595.84**, also proprietary.
   Firmware inputs 610.43.03 are exploit assets, not a driver upgrade to 610.
+  The recommended boot-only path reuses the **booted** kernel and driver exactly;
+  it does not build the newer configured desktop or change these versions.
 * Pinned root nixpkgs: `6fcc160353f63555b560f25588925133c8f61f2a`.
 * Systemd initrd, systemd-boot enabled, `/boot` vfat ESP, five-second timeout.
   Live loader reports version 260.4, UEFI 2.70, Secure Boot already disabled
@@ -65,13 +67,14 @@ this is the same address with an eight-digit domain, not another GPU.
 2. The allowlist addition is permission to attempt testing, not proof of support.
    The laptop VBIOS (reported `90.06.58.40.73`), FWSEC geometry, protected memory
    layout, and pre-driver power state have not been validated by live execution.
-3. The configured kernel/driver pair differs from the live baseline. First boot
-   the **inert** experiment successfully and capture its baseline before any
-   active test, so an ordinary kernel/driver regression is distinguishable.
+3. First boot the **inert** experiment successfully and capture its baseline
+   before any active test. The boot-only path keeps kernel/driver versions fixed,
+   but early-module timing and initrd composition still require a real inert boot.
 4. Independent AMD scanout is observed, but cold recovery, TTY operation without
    NVIDIA, and response to a shared PCI/platform hang remain untested.
 5. Writable conservative power limiting, selector persistence through driver
    initialization, and reset behavior across complete laptop power-off remain
    unproven. No thermal/power protections are bypassed to compensate.
-6. Full stage-2 system closure and installable boot bundle are not yet built.
-   Full normal boot-entry verification also needs privileged read access.
+6. The boot-only bundle is built and validated using the existing stage-2 closure.
+   Normal boot-entry verification still needs privileged read access, and neither
+   the inert nor active experimental entry has been booted.

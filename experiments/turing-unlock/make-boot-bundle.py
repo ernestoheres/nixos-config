@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate reviewable BLS entries from the built bootspec; never install them."""
 import json
+import hashlib
 from pathlib import Path
 import re
 import sys
@@ -8,14 +9,15 @@ import sys
 system, out = map(Path, sys.argv[1:3])
 target = sys.argv[3]
 preview = len(sys.argv) == 5
-boot = json.loads(Path(sys.argv[4]).read_text()) if preview else json.loads(
+boot = json.loads(Path(sys.argv[4]).read_text()) if len(sys.argv) >= 5 else json.loads(
     (system / "boot.json").read_text())["org.nixos.bootspec.v1"]
 params = ["init=" + boot["init"], *boot["kernelParams"]]
 assert not any(p.startswith("turing_unlock.targets=") for p in params)
 assert re.fullmatch(r"[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7]", target)
 if not preview:
     assert (system / "init").is_file(), "The complete system must be built first"
-directory = "EFI/turing-experiment-" + system.name.split("-")[0]
+directory = "EFI/turing-experiment-" + hashlib.sha256(
+    json.dumps(boot, sort_keys=True).encode()).hexdigest()[:32]
 (out / directory).mkdir(parents=True)
 for key, name in [("kernel", "linux.efi"), ("initrd", "initrd")]:
     (out / directory / name).symlink_to(boot[key])
@@ -35,4 +37,5 @@ assert active.count("turing_unlock.targets=") == 1
 (out / "provenance.json").write_text(json.dumps({
     "system": str(system), "bootspec": boot, "esp_directory": directory,
     "inert_targets": [], "active_preview_targets": [target], "preview_only": preview,
+    "boot_only": len(sys.argv) == 6 and sys.argv[5] == "--boot-only",
 }, indent=2) + "\n")

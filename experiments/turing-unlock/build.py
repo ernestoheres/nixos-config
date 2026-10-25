@@ -6,9 +6,13 @@ from pathlib import Path
 import subprocess
 
 parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--boot-only", action="store_true",
+                    help="build a separate initrd/entry using the existing desktop (default)")
 parser.add_argument("--full-system", action="store_true",
-                    help="also build the desktop closure and installable boot bundle (large)")
+                    help="deprecated alias for --boot-only; never rebuilds the desktop")
 args = parser.parse_args()
+if args.full_system:
+    print("--full-system now uses the boot-only build; the desktop will not be rebuilt.", flush=True)
 here = Path(__file__).resolve().parent
 root = here.parent.parent
 out = here / "results"
@@ -24,11 +28,9 @@ source = subprocess.check_output(
 flake = "path:" + source
 subprocess.run(["nix-store", "--realise", source, "--add-root", str(out / "build-source")], check=True)
 
-def build(name, attrs, offline=False):
-    command = ["nix", "build", *[flake + "#" + a for a in attrs],
+def build(name, attrs):
+    command = ["nix", "build", "--impure", *[flake + "#" + a for a in attrs],
                "--out-link", str(out / name), "--json", "-L"]
-    if offline:
-        command.append("--offline")
     print("Building " + name + "; log: " + str(out / (name + ".log")), flush=True)
     with (out / (name + ".log")).open("w") as log:
         result = subprocess.run(command, cwd=root, text=True, stdout=subprocess.PIPE, stderr=log)
@@ -41,10 +43,9 @@ def build(name, attrs, offline=False):
 # Fetch and verify exact archives separately; all asset generation is offline.
 build("inputs", ["turing-unlock-nvidia-source", "turing-unlock-nvidia-utils",
                  "turing-unlock-published-checksum"])
-build("assets", ["turing-unlock-module", "turing-unlock-firmware"], offline=True)
-special = "nixosConfigurations.default-turing-experiment.config.specialisation.turing-experiment.configuration"
-build("initrd", [special + ".system.build.initialRamdisk"])
-if args.full_system:
-    build("system", [special + ".system.build.toplevel"])
-    build("boot-bundle", [special + ".system.build.turingExperimentBootBundle"], offline=True)
+build("boot-assets", ["turing-unlock-boot-module", "turing-unlock-firmware"])
+# Keep signed binary-cache substitution available for missing build tools.
+# The derivations themselves remain network-isolated by Nix's sandbox.
+build("boot-initrd", ["turing-unlock-boot-initrd"])
+build("boot-only", ["turing-unlock-boot-bundle"])
 print("Non-activating builds completed. Nothing installed.", flush=True)

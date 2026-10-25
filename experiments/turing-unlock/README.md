@@ -2,13 +2,17 @@
 
 ## Current status — 2026-10-25
 
-**Module, firmware and inert initrd built and validated. The full desktop system
-build is pending. No boot entry has been installed. Do not boot the preview
-artifacts.**
+**The boot-only module, firmware, initrd and inert boot bundle are built and
+validated. No boot entry has been installed. The existing desktop is reused.**
 
-The remaining full build requested 622 derivations and 8.8 GiB of downloads /
-27.8 GiB unpacked, mostly unrelated desktop packages. `results/system.log`
-records the interrupted attempt. It is not an exploit/module build failure.
+The original full-specialisation build requested 8.8 GiB of downloads / 27.8 GiB
+unpacked because the worktree's desktop configuration is newer than the booted
+generation. It failed with `No space left on device` while packaging Codex Desktop,
+not while building the exploit. `results/system.log` retains the failure evidence.
+The build driver now uses the smallest alternative: a dedicated BLS entry with
+an additive initrd based on the already installed generation 83. There is no
+desktop, NVIDIA driver, or kernel replacement. After the local cleanup its plan
+required about 287 MiB of kernel-header/build-tool downloads, not 8 GiB.
 
 No reboot, exploit/module loading, benchmark, power-limit change, installed-driver
 modification, firmware flash, bootloader write, or NixOS activation was performed.
@@ -23,6 +27,8 @@ physical hardware damage.
 |---|---|
 | `device.nix` | PCI identifiers discovered on this machine |
 | `packages.nix` | Pinned upstream source, fixed-output NVIDIA downloads, offline asset generation and kernel build |
+| `baseline.nix`, `boot-only.nix` | Exact installed generation and matching kernel-header pin; boot-only derivations |
+| `initrd_archive.py`, `compose-boot-only.py` | Add files without replacing any existing initrd member |
 | `tu106m.patch` | One allowlist addition: detected device `0x1f15` |
 | `source/` | Local detached, patched checkout; ignored by the outer repository |
 | `specialisation.nix`, `experiment.nix` | Isolated `turing-experiment` specialisation |
@@ -38,6 +44,14 @@ the specialisation. Only its child installs the module/firmware, initrd gate and
 softdeps. The parent inherits the host's normal GPU/display configuration.
 There is no persistent target parameter or automatic workload.
 
+That specialisation remains available as an optional full-flake configuration;
+**the build driver does not build it**. The recommended boot-only entry instead
+uses the exact preserved kernel and `init=` closure in `baseline.nix`: Linux
+6.18.52 / NVIDIA 595.71.05. It reproduces the existing desktop/display settings
+without evaluating or building its packages. The module is built against the
+matching pinned kernel development output, with the kernel output path checked
+against generation 83's bootspec, not just its version string.
+
 The normal host evaluated to exactly the original derivations:
 
 ```
@@ -50,13 +64,7 @@ The normal host evaluated to exactly the original derivations:
 From the repository root:
 
 ```sh
-# Defaults to the small module/firmware/initrd build.
-python3 experiments/turing-unlock/build.py
-python3 experiments/turing-unlock/validate.py
-
-# Remaining, large step: explicitly request the complete system and boot bundle.
-# Still build-only; no sudo or installation. Allow sufficient space/time.
-python3 experiments/turing-unlock/build.py --full-system
+python3 experiments/turing-unlock/build.py --boot-only
 python3 experiments/turing-unlock/validate.py
 ```
 
@@ -66,18 +74,34 @@ The snapshot and all result symlinks are GC roots. The flake lock is not updated
 On a fresh checkout it also captures read-only hardware evidence and preserves
 the booted system closure, so ignored local files are not prerequisites. This
 experiment is intentionally specific to the hardware and pinned normal-host
-baseline recorded here; changing the host or lock requires reviewing that baseline.
-The specialisation's ordinary build target is:
+baseline recorded here; changing the host requires reviewing that baseline.
+`--boot-only` is the default; the old `--full-system` argument is retained as a
+deprecated alias to this same small build, so it cannot trigger another desktop
+rebuild. Nix uses `--impure` only to reference the exact immutable, locally
+installed baseline store path. All source revisions and downloads are hash-pinned,
+and all ordinary build derivations run in the network-isolated Nix sandbox.
+Signed binary-cache substitutions remain available for build tools.
+
+The standalone package target is:
 
 ```
-nixosConfigurations.default-turing-experiment.config.specialisation.turing-experiment.configuration.system.build.toplevel
+packages.x86_64-linux.turing-unlock-boot-bundle
 ```
 
-The full build also generates `results/boot-bundle`; its inert BLS entry can be
-reviewed and, after approval and recovery checks, copied to the ESP. In contrast,
-`results/boot-preview` demonstrates the future command line but references an
-unbuilt stage-2 system. The validator records `full_system_built: false` until
-the real system closure exists. Merely evaluating its store path is insufficient.
+The result is `results/boot-only`; its inert BLS entry can be reviewed and, after
+approval and recovery checks, copied to the ESP. `results/boot-initrd` is the new
+image and `results/boot-assets` roots the module and firmware. Validation requires
+an existing baseline `init`, an unchanged kernel and kernel parameters, every
+original initrd member's data/metadata, exact firmware hashes, module vermagic,
+correct targeting and a valid systemd unit graph. It records
+`mode: boot-only`, `desktop_rebuilt: false` and `boot_bundle_validated: true`.
+Old `results/boot-preview`, `results/boot-bundle` and 6.18.55 initrd outputs are
+not part of this path; do not install them.
+
+Measured artifacts: module **105,936 bytes**, baseline initrd **35,088,354 bytes**,
+experimental initrd **50,579,546 bytes** (about 48.2 MiB total). The increase is
+approximately 14.8 MiB, primarily the six firmware assets. Build-tool downloads
+are separate from the size of the resulting boot image.
 
 ## Pinned provenance and review
 
@@ -101,12 +125,13 @@ NVIDIA driver. The source README, all three firmware scripts, Kbuild, module
 initialization and cleanup paths were reviewed:
 
 * Kbuild links `main`, `gfw_eval`, `prep`, `layout`, `vbios`, `boot`, `unlock`.
-  Kbuild runs against `config.boot.kernelPackages.kernel.dev`, Linux 6.18.55.
+  The boot-only build uses the exact baseline Linux 6.18.52 development output.
+  The optional full specialisation uses its configured kernel, currently 6.18.55.
 * `main.c` returns before enumerating devices when `targets` is absent/empty.
   Explicit full PCI names are matched against supported NVIDIA devices. Bound
   devices are refused. Initialization waits for all scheduled unlock work.
 * **Initialization returns success even when per-card work fails.** A successful
-  oneshot/modprobe is not evidence of a successful unlock; inspect kernel logs.
+  oneshot/module insertion is not evidence of a successful unlock; inspect kernel logs.
 * `unlock.c` requests six versioned assets, prepares coherent DMA, may perform
   PCIe FLR, runs FWSEC and SEC2, writes selectors, and checks their readbacks.
   This is volatile GPU firmware execution, not a VBIOS flash.
@@ -132,7 +157,7 @@ against the source archive.
 
 Asset generation uses only Nix-store inputs in a sandboxed derivation; no
 `make inputs`, home cache, distribution installer, or privileged download hook.
-`build.py` invokes the asset build offline after fetching. The generators verify
+`build.py` fetches these inputs separately before asset generation. The generators verify
 the package metadata, three generated NVIDIA C inputs, all derived firmware,
 GSP size/hash, generated V67 size/hash and NVIDIA license notice. The final
 verifier repeats all six asset hashes. The first build's `zstd` symlink rejection
@@ -155,26 +180,27 @@ to redistribute NVIDIA firmware. See the pinned source's `firmware/NOTICE.md`.
 
 ## Placement and ordering evidence
 
-Validated image: `/nix/store/zfsf4nfw74087iigb53m2p357c6xac1m-initrd-linux-6.18.55/initrd`.
-It has an early microcode CPIO followed by a zstd-compressed systemd CPIO.
-`validate.py` reads both archives, resolves symlinks within their virtual root,
-decompresses each firmware asset and verifies its actual bytes.
+Validated image: `results/boot-initrd/initrd`; the bundle records its immutable
+store path, hashes and baseline bootspec. It has the original byte-identical
+early microcode CPIO followed by a zstd-compressed systemd CPIO. The composer
+adds 24 entries while preserving all 2,459 original members' data and metadata.
+The old initrd, kernel, NVIDIA modules and stage-2 closure are never modified.
 
 The module is at:
 
 ```
-/lib/modules/6.18.55/extra/turing_unlock.ko
+/turing-experiment/turing_unlock.ko
 ```
 
-The initrd `/lib` resolves into
-`/nix/store/fsc7zq4wkkjpiljkxi0h6rakn0055hq3-linux-6.18.55-modules-shrunk/lib`.
-All six assets are present as `.bin.zst`; NixOS's existing firmware compression
-is retained. `amdgpu.ko.xz` and its firmware are included too. No `nvidia`,
+All six assets are added at the archive's resolved `/lib/firmware/turing-unlock/610.43.03/`
+directory, as unmodified `.bin` bytes inside the compressed initrd. The original
+AMD driver, firmware and display settings remain available in the unchanged
+stage-2 system. No `nvidia`,
 `nvidia_drm`, `nvidia_modeset`, `nvidia_uvm` or `nouveau` module is in this initrd.
 
 The actual pinned NixOS implementation matters: `boot.initrd.kernelModules` is
-an alphabetically enumerated **set**, not an ordering primitive. We instead use
-`availableKernelModules` for placement and an explicit oneshot gate with
+an alphabetically enumerated **set**, not an ordering primitive. The boot-only
+path adds an explicit oneshot gate with
 `DefaultDependencies=false`, before all of:
 
 ```
@@ -187,9 +213,11 @@ systemd-modules-load.service
 
 Each also requires the gate. The gate validates zero target parameters (inert)
 or exactly one parameter equal to the detected dGPU. In active mode it checks
-the live vendor/device and absence of a bound driver before invoking modprobe
-once. NVIDIA subsequently binds in stage 2; no initrd NVIDIA module can race it.
-The `softdep nvidia pre: turing_unlock` is an additional stage-2 ordering hint.
+the live vendor/device and absence of a bound driver before invoking `/bin/kmod
+insmod` once. The module declares no module dependencies (verified via modinfo),
+so no baseline module indexes or modprobe settings need modification. The gate
+passes `targets=` only in active mode; an inert load passes no module arguments.
+NVIDIA subsequently binds in stage 2; no initrd NVIDIA module can race it.
 
 The generated service/drop-ins, script and module/firmware paths were checked
 inside the actual image. `systemd-analyze verify --root=… --generators=no
@@ -197,7 +225,7 @@ inside the actual image. `systemd-analyze verify --root=… --generators=no
 generated units for dependency/order cycles. This is build-time evidence;
 observed boot chronology must still be checked before benchmarking.
 
-Persistent evidence: `results/validation.json`, `initrd-files.txt`,
-`gate.service`, `gate-script.sh`, `module-info.txt`, `module-build.log`,
-`firmware-build.log`, `systemd-verify.log`, `discovery/hardware.json`, and the
+Persistent evidence: `results/validation.json`, `boot-initrd-files.txt`,
+`boot-gate.service`, `boot-gate.sh`, `boot-module-info.txt`, `boot-assets.log`,
+`boot-systemd-verify.log`, `discovery/hardware.json`, and the
 `*.json` build records. Nothing important relies on `/tmp`.

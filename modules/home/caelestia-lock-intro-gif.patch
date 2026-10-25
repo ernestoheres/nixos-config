@@ -1,11 +1,7 @@
 diff --git a/modules/lock/LockSurface.qml b/modules/lock/LockSurface.qml
 --- a/modules/lock/LockSurface.qml
 +++ b/modules/lock/LockSurface.qml
-@@ -5,6 +5,7 @@
- import Quickshell.Wayland
- import Caelestia.Config
- import qs.components
- import qs.components.images
+@@ -9,2 +9,3 @@
  import qs.services
 +import qs.utils
  
@@ -20,7 +16,7 @@ diff --git a/modules/lock/LockSurface.qml b/modules/lock/LockSurface.qml
                  target: background
                  property: "opacity"
                  to: 0
-@@ -100,22 +94,7 @@ WlSessionLockSurface {
+@@ -100,22 +94,10 @@ WlSessionLockSurface {
 -            ParallelAnimation {
 -                Anim {
 -                    target: lockContent
@@ -42,6 +38,9 @@ diff --git a/modules/lock/LockSurface.qml b/modules/lock/LockSurface.qml
 +                to: 1
 +                type: Anim.FastSpatial
 +            }
++            PauseAnimation {
++                duration: 1500
++            }
              ParallelAnimation {
 -                Anim {
 -                    target: lockIcon
@@ -54,7 +53,7 @@ diff --git a/modules/lock/LockSurface.qml b/modules/lock/LockSurface.qml
          id: lockContent
  
 -        readonly property int size: lockIcon.implicitHeight + Tokens.padding.large * 4
-+        readonly property int size: Math.max(lockIcon.implicitWidth, lockIcon.implicitHeight) + Tokens.padding.large * 4
++        readonly property int size: Math.max(lockIcon.width, lockIcon.height) + Tokens.padding.large * 4
          readonly property int radius: size / 4 * Tokens.rounding.scale
  
          anchors.centerIn: parent
@@ -76,8 +75,8 @@ diff --git a/modules/lock/LockSurface.qml b/modules/lock/LockSurface.qml
 -            text: "lock"
 -            fontStyle: Tokens.font.icon.builders.extraLarge.scale(4).weight(Font.Bold).build()
 -            rotation: 180
-+            implicitWidth: Tokens.padding.large * 10
-+            implicitHeight: implicitWidth * 9 / 16
++            width: Tokens.padding.large * 10
++            height: width * 9 / 16
 +            source: Paths.absolutePath("~/.config/caelestia/assets/lock-intro.gif")
 +            fillMode: AnimatedImage.PreserveAspectFit
 +            playing: opacity > 0 && !root.unlocking

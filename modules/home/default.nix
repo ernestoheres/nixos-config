@@ -9,6 +9,7 @@
     ./cli/direnv.nix
     ./cli/eza.nix
     ./cli/fzf.nix
+    ./contexts.nix
     ./cli/git.nix
     ./cli/htop.nix
     ./cli/tealdeer.nix

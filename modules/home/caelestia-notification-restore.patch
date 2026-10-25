@@ -1,0 +1,26 @@
+diff --git a/services/Notifs.qml b/services/Notifs.qml
+--- a/services/Notifs.qml
++++ b/services/Notifs.qml
+@@ -110,6 +110,10 @@ Singleton {
+         path: `${Paths.state}/notifs.json`
+         onLoaded: {
+             const data = JSON.parse(text());
++            // Build off-list: each push to the QML list invalidates filters
++            // and notification models, making a large history quadratic.
++            // Publish once, preserving any notifications received meanwhile.
++            const restored = [];
+             for (const notif of data) {
+                 const properties = Object.assign({}, notif);
+ 
+@@ -118,9 +122,9 @@ Singleton {
+                     properties.notificationId = properties.id;
+ 
+                 delete properties.id;
+-                root.list.push(notifComp.createObject(root, properties));
++                restored.push(notifComp.createObject(root, properties));
+             }
+-            root.list.sort((a, b) => b.time - a.time);
++            root.list = [...root.list, ...restored].sort((a, b) => b.time - a.time);
+             root.loaded = true;
+         }
+         onLoadFailed: err => {

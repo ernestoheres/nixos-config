@@ -100,6 +100,7 @@
                       ./modules/home/caelestia-workspace-shapes.patch
                       ./modules/home/caelestia-lock-no-notifs-gif.patch
                       ./modules/home/caelestia-lock-intro-gif.patch
+                      ./modules/home/caelestia-notification-restore.patch
                     ];
                   }))
                   inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.default

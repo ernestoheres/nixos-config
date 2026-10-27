@@ -24,6 +24,9 @@ assert len(module_files) == 1
 ko = module_files[0]
 assert not subprocess.check_output(["modinfo", "-F", "depends", str(ko)], text=True).strip()
 add(entries, "turing-experiment/turing_unlock.ko", ko.read_bytes())
+# kmod 31 dispatches insmod by argv[0], not by a `kmod insmod` subcommand.
+# Keep the alias in our namespace so no baseline initrd member is replaced.
+add(entries, "turing-experiment/insmod", b"/bin/kmod", stat.S_IFLNK | 0o777)
 fwroot = resolve_name(entries, "lib/firmware")
 manifest = json.loads((firmware / "share/turing-unlock/firmware-hashes.json").read_text())
 hashes = {}
@@ -55,9 +58,9 @@ if test "$count" -eq 1; then
 fi
 echo "turing-unlock gate: target count=$count; loading once before udev and modules-load"
 if test "$count" -eq 1; then
-  /bin/kmod insmod /turing-experiment/turing_unlock.ko targets={target}
+  /turing-experiment/insmod /turing-experiment/turing_unlock.ko targets={target}
 else
-  /bin/kmod insmod /turing-experiment/turing_unlock.ko
+  /turing-experiment/insmod /turing-experiment/turing_unlock.ko
 fi
 echo "turing-unlock gate: module initialization completed"
 '''

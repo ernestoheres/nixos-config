@@ -1,9 +1,26 @@
 # Disposable Turing experiment
 
-## Current status — 2026-10-25
+## Current status — boot-gate dispatch fix
 
-**The boot-only module, firmware, initrd and inert boot bundle are built and
-validated. No boot entry has been installed. The existing desktop is reused.**
+**The original boot-only bundle passed offline validation, was installed, and
+failed during an experimental boot on 2026-10-25. This revision fixes a confirmed
+module-loader invocation bug; the corrected image still needs rebuilding,
+validation and a successful inert boot. The existing desktop is reused.**
+
+The installed entry has no active target parameter. Its initrd SHA-256 matched
+the locally built image (`4be4855169d48201d7d3dca7425571ce8f8b9b64db62af64ec42de8a1f0eab2d`).
+Offline inspection found `/bin/kmod insmod ...` in the gate; invoking the exact
+kmod 31 binary with `insmod --help` reproduced `invalid command 'insmod'`.
+kmod dispatches this compatibility command by executable name, not subcommand.
+The gate now uses a dedicated `/turing-experiment/insmod` symlink to `/bin/kmod`,
+without replacing baseline files. Validation checks the alias and runs only
+`insmod --help` from the extracted image to verify dispatch without loading a module.
+
+The photographed gate failure blocked its required udev/module-loading services.
+The failed boot's journal was not present in the saved boot list, so the dispatch
+bug is a confirmed defect that explains the failure, not a recovered runtime trace.
+Successful unlock execution, TU106M compatibility, performance gains and stability
+remain unverified. The safety/target checks and fail-closed ordering are unchanged.
 
 The original full-specialisation build requested 8.8 GiB of downloads / 27.8 GiB
 unpacked because the worktree's desktop configuration is newer than the booted
@@ -14,12 +31,12 @@ an additive initrd based on the already installed generation 83. There is no
 desktop, NVIDIA driver, or kernel replacement. After the local cleanup its plan
 required about 287 MiB of kernel-header/build-tool downloads, not 8 GiB.
 
-No reboot, exploit/module loading, benchmark, power-limit change, installed-driver
-modification, firmware flash, bootloader write, or NixOS activation was performed.
-The generated firmware files are build assets; they have not been uploaded to
-the GPU. Explicit approval is required before installing a boot entry and again
-before active testing. A software rollback cannot guarantee recovery from
-physical hardware damage.
+The original build-only phase did not install or activate anything; the later
+manual installation and failed boot are recorded above. No successful module
+initialization, firmware execution or unlocked benchmark is established by the
+available evidence. Explicit approval is required before installing a replacement
+boot entry and again before active testing. A software rollback cannot guarantee
+recovery from physical hardware damage.
 
 ## Files and isolation
 
@@ -98,7 +115,7 @@ correct targeting and a valid systemd unit graph. It records
 Old `results/boot-preview`, `results/boot-bundle` and 6.18.55 initrd outputs are
 not part of this path; do not install them.
 
-Measured artifacts: module **105,936 bytes**, baseline initrd **35,088,354 bytes**,
+Original pre-fix measured artifacts: module **105,936 bytes**, baseline initrd **35,088,354 bytes**,
 experimental initrd **50,579,546 bytes** (about 48.2 MiB total). The increase is
 approximately 14.8 MiB, primarily the six firmware assets. Build-tool downloads
 are separate from the size of the resulting boot image.
@@ -180,10 +197,12 @@ to redistribute NVIDIA firmware. See the pinned source's `firmware/NOTICE.md`.
 
 ## Placement and ordering evidence
 
-Validated image: `results/boot-initrd/initrd`; the bundle records its immutable
+Original offline-validated image: `results/boot-initrd/initrd`; the bundle records its immutable
 store path, hashes and baseline bootspec. It has the original byte-identical
 early microcode CPIO followed by a zstd-compressed systemd CPIO. The composer
-adds 24 entries while preserving all 2,459 original members' data and metadata.
+originally added 24 entries while preserving all 2,459 original members' data and metadata.
+The dispatch fix adds one additional symlink; collect updated sizes and counts
+from a fresh build and validation run.
 The old initrd, kernel, NVIDIA modules and stage-2 closure are never modified.
 
 The module is at:
@@ -213,8 +232,8 @@ systemd-modules-load.service
 
 Each also requires the gate. The gate validates zero target parameters (inert)
 or exactly one parameter equal to the detected dGPU. In active mode it checks
-the live vendor/device and absence of a bound driver before invoking `/bin/kmod
-insmod` once. The module declares no module dependencies (verified via modinfo),
+the live vendor/device and absence of a bound driver before invoking
+`/turing-experiment/insmod` once. The module declares no module dependencies (verified via modinfo),
 so no baseline module indexes or modprobe settings need modification. The gate
 passes `targets=` only in active mode; an inert load passes no module arguments.
 NVIDIA subsequently binds in stage 2; no initrd NVIDIA module can race it.
@@ -226,6 +245,6 @@ generated units for dependency/order cycles. This is build-time evidence;
 observed boot chronology must still be checked before benchmarking.
 
 Persistent evidence: `results/validation.json`, `boot-initrd-files.txt`,
-`boot-gate.service`, `boot-gate.sh`, `boot-module-info.txt`, `boot-assets.log`,
+`boot-gate.service`, `boot-gate.sh`, `boot-module-info.txt`, `boot-insmod-help.txt`, `boot-assets.log`,
 `boot-systemd-verify.log`, `discovery/hardware.json`, and the
 `*.json` build records. Nothing important relies on `/tmp`.

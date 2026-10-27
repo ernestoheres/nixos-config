@@ -86,8 +86,12 @@ gate = entries["turing-experiment/gate.sh"].data.decode()
 assert "test \"$arg\" = 'turing_unlock.targets=" + target + "'" in gate
 assert gpu["vendor"] in gate and gpu["device"] in gate
 assert "test \"$count\" -le 1" in gate
-assert "/bin/kmod insmod /turing-experiment/turing_unlock.ko targets=" + target in gate
-assert "/bin/kmod insmod /turing-experiment/turing_unlock.ko\n" in gate
+assert "/bin/kmod insmod" not in gate
+assert "/turing-experiment/insmod /turing-experiment/turing_unlock.ko targets=" + target in gate
+assert "/turing-experiment/insmod /turing-experiment/turing_unlock.ko\n" in gate
+insmod = entries["turing-experiment/insmod"]
+assert stat.S_ISLNK(insmod.mode) and insmod.data == b"/bin/kmod"
+assert resolve_name(entries, "turing-experiment/insmod") == resolve_name(entries, "bin/kmod")
 
 extract = out / "boot-initrd-root"
 if extract.exists():
@@ -111,6 +115,13 @@ for name, entry in entries.items():
         if target_path.startswith("/") and target_path.lstrip("/") in entries:
             target_path = os.path.relpath(extract / target_path.lstrip("/"), path.parent)
         path.symlink_to(target_path)
+# Exercise argv[0] dispatch using the actual image's alias and binary. --help
+# exits before any module insertion; never execute the gate on the running host.
+insmod_help = subprocess.run([str(extract / "turing-experiment/insmod"), "--help"],
+                             text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+(out / "boot-insmod-help.txt").write_text(insmod_help.stdout)
+assert insmod_help.returncode == 0, "See results/boot-insmod-help.txt"
+assert re.search(r"insmod\s+\[options\]\s+filename", insmod_help.stdout), insmod_help.stdout
 verify = subprocess.run(["systemd-analyze", "verify", "--root=" + str(extract),
                          "--generators=no", "--man=no", "initrd.target"],
                         text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -125,7 +136,8 @@ report = {
     "baseline_initrd_members_preserved": len(original_entries), "added_initrd_members": added,
     "microcode_unchanged": True, "firmware": manifest["firmware"],
     "inert_targets": [], "active_preview_targets": [target],
-    "unit_verification_status": verify.returncode, "boot_bundle_validated": True,
+    "unit_verification_status": verify.returncode, "insmod_help_status": insmod_help.returncode,
+    "boot_bundle_validated": True,
     "kernel_sha256": hashlib.sha256(Path(boot["kernel"]).read_bytes()).hexdigest(),
     "igpu_module_available": str(igpu_modules[0]),
     "module_bytes": ko.stat().st_size,

@@ -115,6 +115,28 @@
             }
           ];
         };
+        # Build-only opt-in parent. The normal host has no experiment modules,
+        # parameters or specialisations. Do not install without reviewing the guide.
+        "${host}-turing-experiment" = self.nixosConfigurations.${host}.extendModules {
+          modules = [ ./experiments/turing-unlock/specialisation.nix ];
+        };
+      };
+      packages.${system} = let
+        experiment = import ./experiments/turing-unlock/packages.nix {
+          inherit pkgs;
+          kernel = self.nixosConfigurations.${host}.config.boot.kernelPackages.kernel;
+        };
+        bootOnly = import ./experiments/turing-unlock/boot-only.nix { inherit pkgs; };
+      in {
+        turing-unlock-source = experiment.source;
+        turing-unlock-module = experiment.module;
+        turing-unlock-firmware = experiment.firmware;
+        turing-unlock-nvidia-source = builtins.elemAt experiment.artifacts 0;
+        turing-unlock-nvidia-utils = builtins.elemAt experiment.artifacts 1;
+        turing-unlock-published-checksum = experiment.publishedChecksum;
+        turing-unlock-boot-module = bootOnly.module;
+        turing-unlock-boot-initrd = bootOnly.initrd;
+        turing-unlock-boot-bundle = bootOnly.bundle;
       };
       # Code formatter
       formatter.x86_64-linux = alejandra.defaultPackage.x86_64-linux;
